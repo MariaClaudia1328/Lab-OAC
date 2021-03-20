@@ -1,6 +1,11 @@
 import re  # bib para usar regex
 
-j_dict = {"j": "000010", "jal": "000011"}
+j_dict = {
+    "j": "000010",
+    "jal": "000011",
+    "jr": "000000",
+    "jalr": "000000",
+}
 r_dict = {
     "add": "000000",
     "addu": "000000",
@@ -20,8 +25,15 @@ r_dict = {
     "sltu": "000000",
     "clo": "011100",
     "clz": "011100",
-    "jr": "000000",
-    "jalr": "000000",
+    "mult": "000000",
+    "div": "000000",
+    "mfhi": "000000",
+    "mflo": "000000",
+    "msubu": "011100",
+    "madd": "011100",
+    "mul": "011100",
+    "movn": "000000",
+    "teq": "000000",
 }
 i_dict = {
     "addi": "001000",
@@ -68,6 +80,15 @@ funct_dict = {
     "sltu": "101011",
     "clo": "100001",
     "clz": "100000",
+    "mult": "011000",
+    "msubu": "000101",
+    "div": "011010",
+    "mfhi": "010000",
+    "mflo": "010010",
+    "madd": "000000",
+    "mul": "000010",
+    "movn": "001011",
+    "teq": "110100",
 }
 
 
@@ -374,12 +395,12 @@ for iten in list_isntructions_types:
 
 
 # Formato ou Tipo não encontrado
-# for iten in list_isntructions_types:
-#     print(iten)
-# if iten["type"] == "UNDEFINED TYPE":
-#     print(iten)
-# if "und_format" in iten.keys():
-#     print(iten)
+for iten in list_isntructions_types:
+    # print(iten)
+    if iten["type"] == "UNDEFINED TYPE":
+        print(iten)
+    if "und_format" in iten.keys():
+        print(iten)
 
 
 # Fechar arquivo
