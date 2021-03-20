@@ -1,0 +1,13 @@
+{
+    "python.pythonPath": "a_v/bin/python",
+    "code-runner.executorMap": {
+        "python": "a_v/bin/python",
+    },
+    "python.testing.pytestArgs": [
+        "a_v"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.nosetestsEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "python.formatting.provider": "black"
+}
