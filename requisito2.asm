@@ -25,7 +25,7 @@ ori $t2,$t3,-10
 xori $t2,$t3,-10
 mult $t1, $t2
 div $t1, $t2
-li $t1, XX #incluido na forma de pseudoinstrução
+li $t1, XX 
 mfhi $t1
 mflo $t1
 bgez $t1, LABEL

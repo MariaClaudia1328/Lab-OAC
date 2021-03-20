@@ -61,6 +61,8 @@ i_dict = {
     "blez": "000110",
     "bgtz": "000111",
 }
+m_dict = {}
+
 funct_dict = {
     "add": "100000",
     "addu": "100001",
@@ -201,7 +203,7 @@ if entrada.mode == "r":
     instructionsDict = {}
     for i in contents:
         i = i.replace("\n", "")
-        address += 32  # cada instrução tem 32 bits
+        address += 1  # cada instrução tem 32 bits
         matched = reg.match(i)  # busca label em cada linha
         if (
             matched
@@ -222,7 +224,7 @@ list_isntructions = []
 address2 = 0
 
 for instruc in instructionsDict.values():
-    address2 += 32
+    address2 += 1
     infos = {"address": address2, "instruction": instruc}
     if ((".data" not in instruc) and (".text" not in instruc)) and instruc != "":
         list_isntructions.append(infos)
@@ -259,9 +261,8 @@ def format_r(iten):
     iten_instruc = iten["instruction"]
     remove_comma = iten_instruc.replace(",", " ")
     spli = remove_comma.split()
+    op_name = spli[0]
     if len(spli) == 4:
-        op_name = spli[0]
-
         op = r_dict[op_name]
         rs = spli[2]
         rt = spli[3]
@@ -270,7 +271,7 @@ def format_r(iten):
         if spli[0] == "sll" or spli[0] == "srl" or spli[0] == "sra":
             shamt = spli[3]
         else:
-            shamt = 0
+            shamt = "00000"
 
         funct = funct_dict[op_name]
 
@@ -282,9 +283,55 @@ def format_r(iten):
         iten["funct"] = funct
         # print(iten)
 
-    elif len(spli) != 4:
-        # print(iten)
-        iten["und_format"] = "UNDEFINED"
+    elif len(spli) == 3:
+        if (
+            op_name == "mult"
+            or op_name == "div"
+            or op_name == "madd"
+            or op_name == "msubu"
+            or op_name == "teq"
+        ):
+            op = r_dict[op_name]
+            rs = spli[1]
+            rt = spli[2]
+            rd_shamt = "0000000000"
+            funct = funct_dict[op_name]
+
+            iten["op"] = op
+            iten["rs"] = rs
+            iten["rt"] = rt
+            iten["rd_shamt"] = rd_shamt
+            iten["funct"] = funct
+        elif op_name == "clo":
+            op = r_dict[op_name]
+            rs = spli[2]
+            rt = "00000"
+            rd = spli[1]
+            shamt = "00000"
+            funct = funct_dict[op_name]
+
+            iten["op"] = op
+            iten["rs"] = rs
+            iten["rt"] = rt
+            iten["rd"] = rd
+            iten["shamt"] = shamt
+            iten["funct"] = funct
+        else:
+            iten["undef_form"] = "formatar esse iten"
+    else:
+        if op_name == "mfhi" or op_name == "mflo":
+            op = r_dict[op_name]
+            rs_rt = "0000000000"
+            rd = spli[1]
+            shamt = "00000"
+            funct = funct_dict[op_name]
+            iten["op"] = op
+            iten["rs_rt"] = rs_rt
+            iten["rd"] = rd
+            iten["shamt"] = shamt
+            iten["funct"] = funct
+        else:
+            iten["undef_form"] = "formatar esse iten"
 
 
 def format_i(iten):
@@ -396,11 +443,11 @@ for iten in list_isntructions_types:
 
 # Formato ou Tipo não encontrado
 for iten in list_isntructions_types:
-    # print(iten)
-    if iten["type"] == "UNDEFINED TYPE":
-        print(iten)
-    if "und_format" in iten.keys():
-        print(iten)
+    print(iten)
+    # if iten["type"] == "UNDEFINED TYPE":
+    #     print(iten)
+    # if "undef_form" in iten.keys():
+    #     print(iten)
 
 
 # Fechar arquivo
