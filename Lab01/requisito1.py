@@ -216,6 +216,8 @@ if entrada.mode == "r":
             instructionsDict[address] = i
 
     # print(labelDict)
+
+
 #leitura do .data
 
 entrada2 = open("requisito2.asm",'r')
@@ -272,11 +274,28 @@ list_isntructions = []
 address2 = 0
 
 for instruc in instructionsDict.values():
+    instruc = instruc[0:instruc.find('#')]
     address2 += 1
     infos = {"address": address2, "instruction": instruc}
     if ((".data" not in instruc) and (".text" not in instruc)) and instruc != "":
-        list_isntructions.append(infos)
+        reg = re.compile('\w+ ')
+        mat = reg.match(instruc)
 
+        if(mat):
+            l = mat.group()
+            if(l == 'li '):
+                sl1 = instruc.split(',')[0].strip().split(' ')[1]
+                sl2 = instruc.split(',')[1].strip().rjust(8, '0')
+
+                infos["instruction"] = "lui " + sl1 + "," + sl2[0:4]
+                list_isntructions.append(infos)
+
+                address2 += 1
+                infos["address"] = address2
+                infos["instruction"] = "ori " + sl1 + "," + sl1 + "," + sl2[4:8]
+
+                
+        list_isntructions.append(infos)
 
 # Verificando o type da instruções:
 list_isntructions_types = []
@@ -540,7 +559,7 @@ for i in list_isntructions_types:
 for i in list_isntructions_types:
     for j in i:
         if(j == 'address'):
-            i[j] = np.base_repr(int(i[j]),base=16, padding=8)
+            i[j] = np.base_repr(int(i[j]),base=16).rjust(8,'0')
 
 #juntar a instrução em 32 bits
 saida = []
@@ -556,7 +575,7 @@ for i in list_isntructions_types:
 #transformar instrução em hexadecimal 
 for i in saida:
     if(i):
-        i = np.base_repr(int(i),base=16)
+        i = np.base_repr(int(i),base=16).rjust(8,'0')
 
 address_ = []
 for i in list_isntructions_types:
@@ -582,46 +601,7 @@ for i,j in zip(address_,saida):
 
 saida_text.writelines('\nEND')
 
-
-
 # Fechar arquivo
 saida_text.close()
 entrada.close()
 
-# #Leitura do arquivo de entrada .asm
-# # entrada = open('requisito2.asm','r')
-
-# # aqui começa a montar a linguagem de máquina
-# if entrada.mode == 'r':
-#     conteudo = entrada.readlines()
-#     # print(conteudo)
-# # ------ fim segunda parte -----------
-
-
-# # Escrita no arquivo das saídas de .data e .text
-# saida01 = open('saida_data.mif','w')
-# saida02 = open('saida_text.mif','w')
-# # print(saida01)
-
-# # Definição e escrita do cabecalho do .mif
-# header = ['DEPTH = 16384;\n',
-#         'WIDTH = 32;\n',
-#         'ADDRESS_RADIX = HEX;\n',
-#         'DATA_RADIX = HEX;\n',
-#         'CONTENT\n',
-#         'BEGIN\n']
-# saida01.writelines(header)
-# saida02.writelines(header)
-
-# #escrita no arquivo saida_data.mif
-
-# #escrita no arquivo saida_text.mif
-
-# #Finalização do arquivo
-# saida01.write('\nEND;')
-# saida02.write('\nEND;')
-
-# # Fechar arquivos
-# entrada.close()
-# saida01.close()
-# saida02.close()
