@@ -1,10 +1,9 @@
 import re  # bib para usar regex
+import numpy as np
 
 j_dict = {
     "j": "000010",
     "jal": "000011",
-    "jr": "000000",
-    "jalr": "000000",
 }
 r_dict = {
     "add": "000000",
@@ -34,6 +33,8 @@ r_dict = {
     "mul": "011100",
     "movn": "000000",
     "teq": "000000",
+    "jr": "000000",
+    "jalr": "000000",
 }
 i_dict = {
     "addi": "001000",
@@ -91,6 +92,9 @@ funct_dict = {
     "mul": "000010",
     "movn": "001011",
     "teq": "110100",
+    "jalr": "001001",
+    "jal": "000011",
+    "jr": "001000",
 }
 
 
@@ -291,16 +295,19 @@ def format_r(iten):
             or op_name == "msubu"
             or op_name == "teq"
         ):
+            # print(iten)
             op = r_dict[op_name]
             rs = spli[1]
             rt = spli[2]
-            rd_shamt = "0000000000"
+            rd = "00000"
+            shamt = "00000"
             funct = funct_dict[op_name]
 
             iten["op"] = op
             iten["rs"] = rs
             iten["rt"] = rt
-            iten["rd_shamt"] = rd_shamt
+            iten["rd"] = rd
+            iten["shamt"] = shamt
             iten["funct"] = funct
         elif op_name == "clo":
             op = r_dict[op_name]
@@ -316,22 +323,71 @@ def format_r(iten):
             iten["rd"] = rd
             iten["shamt"] = shamt
             iten["funct"] = funct
-        else:
-            iten["undef_form"] = "formatar esse iten"
-    else:
-        if op_name == "mfhi" or op_name == "mflo":
+        elif op_name == "jalr":
             op = r_dict[op_name]
-            rs_rt = "0000000000"
-            rd = spli[1]
+            rs = spli[1]
+            rt = "00000"
+            rd = spli[2]
             shamt = "00000"
             funct = funct_dict[op_name]
+
             iten["op"] = op
-            iten["rs_rt"] = rs_rt
+            iten["rs"] = rs
+            iten["rt"] = rt
             iten["rd"] = rd
             iten["shamt"] = shamt
             iten["funct"] = funct
         else:
             iten["undef_form"] = "formatar esse iten"
+    else:
+        if op_name == "mfhi" or op_name == "mflo":
+            op = r_dict[op_name]
+            rs = "00000"
+            rt = "00000"
+            rd = spli[1]
+            shamt = "00000"
+            funct = funct_dict[op_name]
+            iten["op"] = op
+            iten["rs"] = rs
+            iten["rt"] = rt
+            iten["rd"] = rd
+            iten["shamt"] = shamt
+            iten["funct"] = funct
+        else:
+            if op_name == "jalr":
+                op = r_dict[op_name]
+                rs = spli[1]
+                rt = "00000"
+                rd = "$ra"
+                shamt = "00000"
+                funct = funct_dict[op_name]
+
+                iten["op"] = op
+                iten["rs"] = rs
+                iten["rt"] = rt
+                iten["rd"] = rd
+                iten["shamt"] = shamt
+                iten["funct"] = funct
+            elif op_name == "jal":
+                op = r_dict[op_name]
+                _address_ = spli[1]
+                iten["op"] = op
+                iten["_address_"] = _address_
+            elif op_name == "jr":
+                op = r_dict[op_name]
+                rs = spli[1]
+                rt = "00000"
+                rd = "00000"
+                shamt = "00000"
+                funct = funct_dict[op_name]
+                iten["op"] = op
+                iten["rs"] = rs
+                iten["rt"] = rt
+                iten["rd"] = rd
+                iten["shamt"] = shamt
+                iten["funct"] = funct
+            else:
+                iten["undef_form"] = "formatar esse iten"
 
 
 def format_i(iten):
@@ -352,7 +408,6 @@ def format_i(iten):
             iten["rs"] = rs
             iten["rt"] = rt
             iten["imm"] = imm
-
         else:  # len=4 porém último índice não é número
             if spli[3][0] == "$":
                 op_name = spli[0]
@@ -373,12 +428,10 @@ def format_i(iten):
                 rs = spli[2]
                 rt = spli[1]
                 imm = spli[3]
-
                 iten["op"] = op
                 iten["rs"] = rs
                 iten["rt"] = rt
                 iten["imm"] = imm
-
     else:
         if "(" in spli[2]:
             ctt = re.findall("\(.*?\)", spli[2])
@@ -400,8 +453,16 @@ def format_i(iten):
         else:
             op_name = spli[0]
             op = i_dict[op_name]
-            rs = 0
-            rt = spli[1]
+            if op_name == "bgez":
+                rs = spli[1]
+                rt = 1
+            elif op_name == "bgezal":
+                rs = spli[1]
+                rt = 10001
+            elif op_name == "lui":
+                rs = 00000
+                rt = spli[1]
+
             imm = spli[2]
 
             iten["op"] = op
@@ -442,15 +503,115 @@ for iten in list_isntructions_types:
 
 
 # Formato ou Tipo não encontrado
-for iten in list_isntructions_types:
-    print(iten)
-    # if iten["type"] == "UNDEFINED TYPE":
-    #     print(iten)
-    # if "undef_form" in iten.keys():
-    #     print(iten)
+# for iten in list_isntructions_types:
+# print(iten)
+# if iten["type"] == "UNDEFINED TYPE":
+#     print(iten)
+# if "undef_form" in iten.keys():
+#     print(iten)
+# print("-----------------------------------------------------------------------------------------------")
 
+
+# passar os valores dos campos para binario
+# na funcao da np.binary_repr eu passo como argumento o numero em decimal e o tanto de bits. Se o decimal for sinalizado,ele é passado para complemento de 2
+for i in list_isntructions_types:
+    # print(i)
+    for j in i:
+        if j == "rs":
+            num = number_reg(i[j])
+            if num:
+                i[j] = np.binary_repr(num, 5)
+            else:
+                i[j] = np.binary_repr(0, 5)
+        if j == "rd":
+            num = number_reg(i[j])
+            if num:
+                i[j] = np.binary_repr(num, 5)
+            else:
+                i[j] = np.binary_repr(0, 5)
+        if j == "rt":
+            num = number_reg(i[j])
+            if num:
+                i[j] = np.binary_repr(num, 5)
+            else:
+                i[j] = np.binary_repr(0, 5)
+        if j == "imm":
+            if i[j][0] == "$":
+                num = number_reg(i[j])
+                if num:
+                    i[j] = np.binary_repr(num, 5)
+                else:
+                    i[j] = np.binary_repr(0, 5)
+            else:
+                num = number_reg(i[j])
+                if num:
+                    i[j] = np.binary_repr(num, 5)
+                else:
+                    i[j] = np.binary_repr(0, 5)
+        if j == "_address_":
+            num = number_reg(i[j])
+            if num:
+                i[j] = np.binary_repr(num, 5)
+            else:
+                i[j] = np.binary_repr(0, 5)
+        # pesquisar na tabela de Label
+
+# passar o endereço para hexadecimal
+# na função np.base_repr eu passo o numero, a base e o tamanho que eu quero
+for i in list_isntructions_types:
+    # print(i)
+    for j in i:
+        if j == "address":
+            i[j] = np.base_repr(int(i[j]), base=16, padding=8)
+
+# juntar a instrução
+saida = []
+for i in list_isntructions_types:
+    aux = 0
+    s = ""
+    for k, v in i.items():
+        aux += 1
+        if aux >= 4:
+            s = s + v
+    saida.append(s)
+
+
+# for k in saida:
+#    print(k)
+
+# transformar instrução em hexadecimal
+for i in saida:
+    if i:
+        i = np.base_repr(int(i), base=16)
+
+address_ = []
+for i in list_isntructions_types:
+    if i["address"]:
+        address_.append(i["address"])
+
+# mandar endereço e instrução para mif no formato -->    address : instrução
+saida_text = open("saida_text.mif", "w")
+header = [
+    "DEPTH = 16384;\n",
+    "WIDTH = 32;\n",
+    "ADDRESS_RADIX = HEX;\n",
+    "DATA_RADIX = HEX;\n",
+    "CONTENT\n",
+    "BEGIN\n\n",
+]
+saida_text.writelines(header)
+s = ""
+for i, j in zip(address_, saida):
+    s = i + " : " + j + "\n"
+    saida_text.writelines(s)
+
+saida_text.writelines("\nEND")
+
+# for iten in list_isntructions_types:
+#   print(iten)
 
 # Fechar arquivo
+saida_text.close()
 entrada.close()
 # #--fim primeira parte -----------------
 

@@ -1,7 +1,7 @@
 .data
 
 .text
-lw  $t0, OFFSET(a$s3)
+lw  $t0, OFFSET($s3)
 add $t0,$a2,$t0
 sub $t0,$a2,$t0
 and $t0,$a2,$t0
