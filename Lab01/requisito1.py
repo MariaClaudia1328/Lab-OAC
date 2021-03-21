@@ -202,7 +202,7 @@ if entrada.mode == "r":
     )  # regex que é utilizada para identificar os labels
     labelDict = {}  # dicionario da tabela de simbolos das labels
     instructionsDict = {}
-    for i in contents:
+    for i in contents:      
         i = i.replace("\n", "")
         address += 1  # cada instrução tem 32 bits
         matched = reg.match(i)  # busca label em cada linha
@@ -216,6 +216,53 @@ if entrada.mode == "r":
             instructionsDict[address] = i
 
     # print(labelDict)
+#leitura do .data
+
+entrada2 = open("requisito2.asm",'r')
+
+saida_data = []
+if(entrada2.mode == 'r'):
+    conteudo = entrada2.readlines()
+    add = 0
+    for i in conteudo:
+        if( i == '.text\n'):
+            break
+        else:
+            sl = i.rstrip('\n').lstrip().split(' ')
+            for item in sl:
+                if(('.word' in sl) and item != '.word'):
+                    saida_data.append(item)
+                if(('.byte' in sl) and item != '.byte'):
+                    item = item.split(',')
+                    for c in item:
+                        for d in c:
+                            if(d!="'"):
+                                saida_data.append(ord(d))
+                
+addres_data = []
+index = 0
+for add in saida_data:
+    addres_data.append(np.base_repr(index,base=16).rjust(8,'0'))
+    saida_data[index] = np.base_repr(int(add), base = 16).rjust(8,'0')
+    index += 1
+
+saidaData = open("saida_data.mif",'w')
+header = ['DEPTH = 16384;\n',
+         'WIDTH = 32;\n',
+         'ADDRESS_RADIX = HEX;\n',
+         'DATA_RADIX = HEX;\n',
+         'CONTENT\n',
+         'BEGIN\n\n']
+
+saidaData.writelines(header)
+
+#escrever em .data
+for value,add in zip(saida_data,addres_data):
+    s = add + ' : ' + value + '\n'
+    saidaData.writelines(s)
+
+saidaData.writelines('\nEND')
+saidaData.close() 
 
 
 # print(instructionsDict)
@@ -441,7 +488,6 @@ for iten in list_isntructions_types:
     else:  ##Type não identificado !
         pass
 
-
 # Formato ou Tipo não encontrado
 #for iten in list_isntructions_types:
 #    print(iten)
@@ -480,18 +526,14 @@ for i in list_isntructions_types:
                 else:
                     i[j] = np.binary_repr(0,5)
             else:
-                num = number_reg(i[j])
-                if(num):
-                    i[j] = np.binary_repr(num,5)
-                else:
-                    i[j] = np.binary_repr(0,5)
+                if(i[j] != 'LABEL' or i[j] != 'OxXXXX'):
+                    i[j] = np.binary_repr(int(i[j]),16)
         if(j == '_address_'):
             num = number_reg(i[j])
             if(num):
                 i[j] = np.binary_repr(num,5)
             else:
                 i[j] = np.binary_repr(0,5)
-        #pesquisar na tabela de Label
 
 # passar o endereço para hexadecimal 
 # na função np.base_repr eu passo o numero, a base e o tamanho que eu quero
@@ -500,7 +542,7 @@ for i in list_isntructions_types:
         if(j == 'address'):
             i[j] = np.base_repr(int(i[j]),base=16, padding=8)
 
-#juntar a instrução
+#juntar a instrução em 32 bits
 saida = []
 for i in list_isntructions_types:
     aux = 0
@@ -510,10 +552,6 @@ for i in list_isntructions_types:
         if(aux >= 4):
             s = s + v
     saida.append(s)    
-
-
-#for k in saida:
-#    print(k)
 
 #transformar instrução em hexadecimal 
 for i in saida:
@@ -526,13 +564,16 @@ for i in list_isntructions_types:
         address_.append(i['address'])
 
 # mandar endereço e instrução para mif no formato -->    address : instrução
+
 saida_text = open("saida_text.mif", "w")
+
 header = ['DEPTH = 16384;\n',
          'WIDTH = 32;\n',
          'ADDRESS_RADIX = HEX;\n',
          'DATA_RADIX = HEX;\n',
          'CONTENT\n',
          'BEGIN\n\n']
+
 saida_text.writelines(header)
 s = ''
 for i,j in zip(address_,saida):
@@ -541,20 +582,11 @@ for i,j in zip(address_,saida):
 
 saida_text.writelines('\nEND')
 
-#for iten in list_isntructions_types:
-#   print(iten)
+
 
 # Fechar arquivo
 saida_text.close()
 entrada.close()
-# #--fim primeira parte -----------------
-
-
-# # --segunda leitura--
-#     # ler linha a linha
-#     # no caso de encontrar instrução com apenas registradores: armazenar num dicionario --> 'endereço': 'instrução em bits'
-#     # no caso de encontrar label: confere se o label existe e monta
-#         # no caso de label dentro da instrução --> procura se existe, seu endereço e monta
 
 # #Leitura do arquivo de entrada .asm
 # # entrada = open('requisito2.asm','r')
