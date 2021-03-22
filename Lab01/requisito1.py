@@ -111,11 +111,7 @@ def is_number(num):
     return False
 
 
-# --o que não sei resolver ainda--
-# quando o label termina de ser montado
-# no caso de constantes muito grandes
 
-# Identificacao dos registradores pela máscara, retorna um inteiro correspondente ao registrador (usado na hora da montagem)
 def number_reg(mask):
     if mask == "$0" or mask == "$zero":
         return 0
@@ -183,43 +179,29 @@ def number_reg(mask):
         return 31
 
 
-# --primeira leitura -------------------
-# ler linha a linha
-# cada linha eu acrescento 32 bits ao endereço
-# se for encontrado um label (nome que termina com : ) seu endereço e nome é guardado num dicionario diferente (symbol table)
-
 # Leitura do arquivo de entrada .asm
 entrada = open("requisito2.asm", "r")
-# print("entrada!!!",entrada)
 
 # Confere se arquivo foi aberto e começa o processo
 if entrada.mode == "r":
     contents = entrada.readlines()  # le linha a linha
-    # print("contents!!!", contents)
     address = 0  # endereço (int)
-    reg = re.compile(
-        "\w+:", flags=re.M
-    )  # regex que é utilizada para identificar os labels
-    labelDict = {}  # dicionario da tabela de simbolos das labels
+    reg = re.compile("\w+:", flags=re.M)  
+    labelDict = {} 
     instructionsDict = {}
-    for i in contents:      
+    for i in contents:
         i = i.replace("\n", "")
-        address += 1  # cada instrução tem 32 bits
-        matched = reg.match(i)  # busca label em cada linha
-        if (
-            matched
-        ):  # se achou, pega a string, retira o : e adciona no dicionario com chave = address e valor = string
+        address += 1  
+        matched = reg.match(i) 
+        if ( matched):  
             label = matched.group()
             label = re.sub(":", "", label)
-            labelDict[address] = label
-        else:  # caso contrário, adiciono essa linha de instrução em outro dicionario
+            labelDict[label] = address
+        else: 
             instructionsDict[address] = i
-
-    # print(labelDict)
 
 
 #leitura do .data
-
 entrada2 = open("requisito2.asm",'r')
 
 saida_data = []
@@ -266,15 +248,12 @@ for value,add in zip(saida_data,addres_data):
 saidaData.writelines('\nEND')
 saidaData.close() 
 
-
-# print(instructionsDict)
-# print("------------------------------------------------------------")
-
 list_isntructions = []
 address2 = 0
 
 for instruc in instructionsDict.values():
-    instruc = instruc[0:instruc.find('#')]
+    if(instruc.find('#')!=-1):
+        instruc = instruc[0:instruc.find('#')]
     address2 += 1
     infos = {"address": address2, "instruction": instruc}
     if ((".data" not in instruc) and (".text" not in instruc)) and instruc != "":
@@ -285,17 +264,23 @@ for instruc in instructionsDict.values():
             l = mat.group()
             if(l == 'li '):
                 sl1 = instruc.split(',')[0].strip().split(' ')[1]
-                sl2 = instruc.split(',')[1].strip().rjust(8, '0')
+                sl2 = instruc.split(',')[1].strip()
+                if('x' in sl2):
+                    sl2 = str(int(sl2, 16)).rjust(8,'0')
+                else:
+                    sl2 = sl2.rjust(8, '0')
 
                 infos["instruction"] = "lui " + sl1 + "," + sl2[0:4]
                 list_isntructions.append(infos)
-
+                
+                infos = infos.copy()
                 address2 += 1
                 infos["address"] = address2
                 infos["instruction"] = "ori " + sl1 + "," + sl1 + "," + sl2[4:8]
-
                 
+
         list_isntructions.append(infos)
+
 
 # Verificando o type da instruções:
 list_isntructions_types = []
@@ -319,9 +304,6 @@ for info in list_isntructions:
     infos = {"address": address, "instruction": instruction, "type": typee}
 
     list_isntructions_types.append(infos)
-
-
-# print(list_isntructions_types)
 
 
 def format_r(iten):
@@ -348,7 +330,6 @@ def format_r(iten):
         iten["rd"] = rd
         iten["shamt"] = shamt
         iten["funct"] = funct
-        # print(iten)
 
     elif len(spli) == 3:
         if (
@@ -507,17 +488,17 @@ for iten in list_isntructions_types:
     else:  ##Type não identificado !
         pass
 
-# Formato ou Tipo não encontrado
-#for iten in list_isntructions_types:
-#    print(iten)
-    # if iten["type"] == "UNDEFINED TYPE":
-    #     print(iten)
-    # if "undef_form" in iten.keys():
-    #     print(iten)
 
-# passar os valores dos campos para binario 
-# na funcao da np.binary_repr eu passo como argumento o numero em decimal e o tanto de bits. Se o decimal for sinalizado,ele é passado para complemento de 2
+# converte de hexadecimal para binario
+def hexa_bin(hexa, num_of_bits):
+    scale = 16 
+    return bin(int(hexa, scale))[2:].zfill(num_of_bits)
+
+for item in list_isntructions_types:
+    print(item)
+
 for i in list_isntructions_types:
+
     for j in i:
         if(j == 'rs'):
             num = number_reg(i[j])
@@ -541,27 +522,75 @@ for i in list_isntructions_types:
             if(i[j][0] == '$'):
                 num = number_reg(i[j])
                 if(num):
+                    i[j] = np.binary_repr(num,16)
+                else:
+                    i[j] = np.binary_repr(0,16)
+            elif(i[j] in labelDict):
+                i[j] = np.binary_repr(labelDict[i[j]],16)
+
+            elif(i[j][0] == '0' and i[j][1] == 'x'):
+                i[j] = hexa_bin(i[j],16)
+
+            else:
+                i[j] = np.binary_repr(int(i[j]),16)
+
+        if(j == 'shamt'):
+            if(i['type'] == 'R-TYPE'):
+                if(i[j] != '00000'):
+                    i[j] = np.binary_repr(int(i[j]),5)
+
+        if(j == '_address_'):
+            if(i['op'] == '000011'):
+                if(i[j][0] == '$'):
+                    num = number_reg(i[j])
+                    if(num):
+                        i[j] = np.binary_repr(num,26)
+                    else:
+                        i[j] = np.binary_repr(0,26)
+                elif(i[j] in labelDict):
+                    i[j] = np.binary_repr(labelDict[i[j]],26)
+                elif(i[j][0] == '0' and i[j][1] == 'x'):
+                    i[j] = hexa_bin(i[j],26)
+            elif('jr ' in i['instruction']):
+                if(i[j][0] == '$'):
+                    num = number_reg(i[j])
+                    if(num):
+                        i[j] = np.binary_repr(num,5)
+                    else:
+                        i[j] = np.binary_repr(0,5)
+                elif(i[j] in labelDict):
+                    i[j] = np.binary_repr(labelDict[i[j]],5)
+                elif(i[j][0] == '0' and i[j][1] == 'x'):
+                    i[j] = hexa_bin(i[j],5)
+                i[j] = i[j] + '000000000000000001000'
+            elif('jalr' in i['instruction']):
+                num = number_reg(i[j])
+                if(num):
                     i[j] = np.binary_repr(num,5)
                 else:
                     i[j] = np.binary_repr(0,5)
-            else:
-                if(i[j] != 'LABEL' or i[j] != 'OxXXXX'):
-                    i[j] = np.binary_repr(int(i[j]),16)
-        if(j == '_address_'):
-            num = number_reg(i[j])
-            if(num):
-                i[j] = np.binary_repr(num,5)
-            else:
-                i[j] = np.binary_repr(0,5)
 
-# passar o endereço para hexadecimal 
-# na função np.base_repr eu passo o numero, a base e o tamanho que eu quero
+                if(i['instruction'].find(',') != -1):
+                    s = i['instruction'].split(',')[-1].strip()
+                    num2 = number_reg(s)
+                    i[j] = i[j] + '00000' + np.binary_repr(num2,5) + '00000001001'
+                else:
+                    i[j] = i[j] + '000001111100000001001'
+
+            else:
+                num = number_reg(i[j])
+                if(num):
+                    i[j] = np.binary_repr(num,15)
+                else:
+                    i[j] = np.binary_repr(0,15)
+                
+
 for i in list_isntructions_types:
     for j in i:
         if(j == 'address'):
             i[j] = np.base_repr(int(i[j]),base=16).rjust(8,'0')
 
-#juntar a instrução em 32 bits
+#juntar a instrução
 saida = []
 for i in list_isntructions_types:
     aux = 0
@@ -583,9 +612,8 @@ for i in list_isntructions_types:
         address_.append(i['address'])
 
 # mandar endereço e instrução para mif no formato -->    address : instrução
-
 saida_text = open("saida_text.mif", "w")
-
+s = ''
 header = ['DEPTH = 16384;\n',
          'WIDTH = 32;\n',
          'ADDRESS_RADIX = HEX;\n',
@@ -594,14 +622,13 @@ header = ['DEPTH = 16384;\n',
          'BEGIN\n\n']
 
 saida_text.writelines(header)
-s = ''
 for i,j in zip(address_,saida):
     s = i + ' : ' + j + '\n'
     saida_text.writelines(s)
 
 saida_text.writelines('\nEND')
+saida_text.close()
 
 # Fechar arquivo
-saida_text.close()
 entrada.close()
-
+entrada2.close()
