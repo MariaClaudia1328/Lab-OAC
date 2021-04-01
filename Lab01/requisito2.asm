@@ -1,14 +1,15 @@
 .data
-
+    .word 1 2 3
+    .byte 's'
 .text
-lw  $t0, OFFSET(a$s3)
+lw  $t0, 12($s3)
 add $t0,$a2,$t0
 sub $t0,$a2,$t0
 and $t0,$a2,$t0
 or  $t0,$a2,$t0
 nor $t0,$a2,$t0
 xor $t0,$a2,$t0
-sw  $t0, OFFSET($s3)
+sw  $t0, 17($s3)
 jr  $t0
 jal LABEL
 beq $t1, $zero, LABEL
