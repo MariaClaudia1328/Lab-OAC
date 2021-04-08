@@ -11,6 +11,16 @@
 
 - Fazer modificações necessárias na Unidade Operativa da imagem de forma que o processamento do Uniciclo completo ocorra
 - Apresentar unidade de controle, com sinais de controle em cada módulo e registradores
+- Módulos a serem desenvolvidos:
+    - ULA
+    - Muxes
+    - Memória de instruções (requisito 2)
+    - Memória de dados (requisito 2)
+    - Banco de registradores 
+    - Extensão de sinal
+    - Deslocamento de 2 à esquerda 
+    - Unidade para multiplicação 
+    - Unidade para instrução jump
 
 ### Requisito 02: Bloco de Memória de Dados e Instruções
 
@@ -35,5 +45,6 @@
 
 ## Observações
 
+- Se utilizar um modo para construir como blocos nativos do quartus, verilog, a consistencia deve ser mantida pra evitar problemas --> Se usou verilog em um, ele deve ser usado em todos
 
 ## Infos
