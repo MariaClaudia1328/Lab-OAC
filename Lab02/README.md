@@ -21,6 +21,7 @@
     - Deslocamento de 2 à esquerda 
     - Unidade para multiplicação 
     - Unidade para instrução jump
+    - Unidade de controle
 
 ### Requisito 02: Bloco de Memória de Dados e Instruções
 
