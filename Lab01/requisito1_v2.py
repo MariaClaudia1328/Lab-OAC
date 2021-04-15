@@ -217,10 +217,10 @@ if entrada.mode == "r":
             label = matched.group()
             label = re.sub(":", "", label)
             if(seg_Data):
-                labelDict[label] = address_data
+                labelDict[label] = address_data + 268500992 
                 address_data += 1
             else:
-                labelDict[label] = address_text
+                labelDict[label] = address_text +  4194304
                 address_text += 1
         else: 
             if(seg_Data):
