@@ -186,11 +186,17 @@ if(len(sys.argv) == 1):
 
 entrada = open(sys.argv[1], "r")
 
+# converte de hexadecimal para binario
+def hexa_bin(hexa, num_of_bits):
+    scale = 16 
+    return bin(int(hexa, scale))[2:].zfill(num_of_bits)
+
+address_text = 0 # endereço (int)
+address_data =  0# endereço (int)
+
 # Confere se arquivo foi aberto e começa o processo
 if entrada.mode == "r":
     contents = entrada.readlines()  # le linha a linha
-    address_text = 0  # endereço (int)
-    address_data = 0  # endereço (int)
     reg = re.compile("\w+:", flags=re.M)  
     segD = re.compile(".data", flags=re.M)
     segT = re.compile(".text", flags=re.M)
@@ -202,19 +208,27 @@ if entrada.mode == "r":
         print(i) 
         matched = reg.match(i)
 
+        if(matched and matched == segD):
+            seg_Data = True
+        else:
+            seg_Data = False
+
         if (matched):  
-            
             label = matched.group()
             label = re.sub(":", "", label)
-            
-            if()
-            labelDict[label] = address
+            if(seg_Data):
+                labelDict[label] = address_data
+                address_data += 1
+            else:
+                labelDict[label] = address_text
+                address_text += 1
         else: 
-            instructionsDict[address] = i
-        
-        
-
-print(labelDict)
+            if(seg_Data):
+               instructionsDict[address_text] = i
+               address_text += 1
+            else:
+                instructionsDict[address_text] = i
+                address_text += 1        
 
 #leitura do .data
 entrada2 = open(sys.argv[1],'r')
@@ -222,7 +236,6 @@ entrada2 = open(sys.argv[1],'r')
 saida_data = []
 if(entrada2.mode == 'r'):
     conteudo = entrada2.readlines()
-    add = 0
     for i in conteudo:
         if( i == '.text\n'):
             break
@@ -244,7 +257,7 @@ if(entrada2.mode == 'r'):
 addres_data = []
 index = 0
 for add in saida_data:
-    addres_data.append(np.base_repr(index,base=16).rjust(8,'0'))
+    addres_data.append(np.base_repr(index + 268500992,base=16).rjust(8,'0'))
     saida_data[index] = np.base_repr(int(add), base = 16).rjust(8,'0')
     index += 1
 
@@ -260,7 +273,7 @@ saidaData.writelines(header)
 
 #escrever em .data
 for value,add in zip(saida_data,addres_data):
-    s = add + ' : ' + value + '\n'
+    s = (add) + ' : ' + value + ';\n'
     saidaData.writelines(s)
 
 saidaData.writelines('\nEND')
@@ -289,13 +302,13 @@ for instruc in instructionsDict.values():
                 else:
                     sl2 = sl2.rjust(8, '0')     
 
-                infos["instruction"] = "lui " + sl1 + "," + '0x' +  sl2[0:4]
+                infos["instruction"] = "lui " + '$at' + "," + '0x' +  sl2[0:4]
                 list_isntructions.append(infos)
                 
                 infos = infos.copy()
                 address2 += 1
                 infos["address"] = address2
-                infos["instruction"] = "ori " + sl1 + "," + sl1 + "," + '0x' + sl2[4:8]
+                infos["instruction"] = "ori " + sl1 + "," + '$at' + "," + '0x' + sl2[4:8]
                 
 
         list_isntructions.append(infos)
@@ -507,12 +520,6 @@ for iten in list_isntructions_types:
         pass
 
 
-# converte de hexadecimal para binario
-def hexa_bin(hexa, num_of_bits):
-    scale = 16 
-    return bin(int(hexa, scale))[2:].zfill(num_of_bits)
-
-
 for i in list_isntructions_types:
     print(i)
     for j in i:
@@ -606,7 +613,7 @@ for i in list_isntructions_types:
 for i in list_isntructions_types:
     for j in i:
         if(j == 'address'):
-            i[j] = np.base_repr(int(i[j]),base=16).rjust(8,'0')
+            i[j] = np.base_repr(int(i[j]) + 4194304,base=16).rjust(8,'0')
 
 #juntar a instrução
 saida = []
@@ -642,7 +649,7 @@ header = ['DEPTH = 16384;\n',
 
 saida_text.writelines(header)
 for i,j in zip(address_,saida):
-    s = i + ' : ' + j + '\n'
+    s = i + ' : ' + j + ';\n'
     saida_text.writelines(s)
 
 saida_text.writelines('\nEND')
