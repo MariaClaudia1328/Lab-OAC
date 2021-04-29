@@ -41,7 +41,7 @@ module MainControl(
 			4: begin /* BEQ */
 				RegDst 		<= 0;
 				ALUSrc 		<= 0;
-				MemtoReg	<= 0;
+				MemtoReg	<= x;
 				RegWrite	<= 0;
 				MemRead		<= 0;
 				MemWrite	<= 0;
@@ -60,8 +60,8 @@ module MainControl(
 			end
 			5: begin /* BNE */
 				RegDst 		<= 0;
-				ALUSrc 		<= 1;
-				MemtoReg	<= 0;
+				ALUSrc 		<= 0;
+				MemtoReg	<= x;
 				RegWrite	<= 0;
 				MemRead		<= 0;
 				MemWrite	<= 0;
@@ -107,6 +107,56 @@ module MainControl(
 				MemWrite	<= 0;
 				Branch		<= 0;
 				ALUOp		<= 3'b101; ###
+			end
+			15: begin /* LUI */
+				RegDst 		<= 0;
+				ALUSrc 		<= 1;
+				MemtoReg	<= 0;
+				RegWrite	<= 1;
+				MemRead		<= 0;
+				MemWrite	<= 0;
+				Branch		<= 0;
+				ALUOp		<= 4'b1001; ###
+			end
+			28: begin /* MUL, MADD, MSUBU */ ##########nentendi
+				RegDst 		<= 1;
+				ALUSrc 		<= 0;
+				MemtoReg	<= 1;
+				RegWrite	<= 1;
+				MemRead		<= 0;
+				MemWrite	<= 0;
+				Branch		<= 0;
+				ALUOp		<= x; ###
+			end
+			9: begin /* ADDIU */ 
+				RegDst 		<= 0;
+				ALUSrc 		<= 1;
+				MemtoReg	<= 0;
+				RegWrite	<= 1;
+				MemRead		<= 0;
+				MemWrite	<= 0;
+				Branch		<= 0;
+				ALUOp		<= 4'b000; ###
+			end
+			32: begin /* LB */ 
+				RegDst 		<= 0;
+				ALUSrc 		<= 1;
+				MemtoReg	<= 1;
+				RegWrite	<= 1;
+				MemRead		<= 0;
+				MemWrite	<= 0;
+				Branch		<= 0;
+				ALUOp		<= 4'b000; ###
+			end
+			40: begin /* SB */ 
+				RegDst 		<= 0;
+				ALUSrc 		<= 1;
+				MemtoReg	<= x;
+				RegWrite	<= 0;
+				MemRead		<= 0;
+				MemWrite	<= 1;
+				Branch		<= 0;
+				ALUOp		<= 4'b000; ###
 			end
 			1: begin /* BGEZ E BGEZAL */
 				ALUSrc 		<= 1;
