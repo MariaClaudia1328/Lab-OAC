@@ -56,6 +56,16 @@ module MainControl(
 				MemRead		<= 0;
 				MemWrite	<= 0;
 				Branch		<= 0;
+				ALUOp		<= 4'bx;
+			end
+			3: begin /* JR */
+				RegDst 		<= 2'd1; ###
+				ALUSrc 		<= x;
+				MemtoReg	<= 0;
+				RegWrite	<= 1;
+				MemRead		<= 0;
+				MemWrite	<= 0;
+				Branch		<= 0;
 				ALUOp		<= x;
 			end
 			5: begin /* BNE */
@@ -66,7 +76,7 @@ module MainControl(
 				MemRead		<= 0;
 				MemWrite	<= 0;
 				Branch		<= 0;
-				ALUOp		<= 2'b01;
+				ALUOp		<= 4'b0001;
 			end
 			8: begin /* ADDI */
 				RegDst 		<= 0;
@@ -126,7 +136,7 @@ module MainControl(
 				MemRead		<= 0;
 				MemWrite	<= 0;
 				Branch		<= 0;
-				ALUOp		<= x; ###
+				ALUOp		<= x4'dx; ###
 			end
 			9: begin /* ADDIU */ 
 				RegDst 		<= 0;
